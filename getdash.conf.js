@@ -18,6 +18,7 @@ var getDashConf = function getDashConf () {
     //regexp: /\d$/,                 // Used to filter instances by regexp.
 
     //datasources: [ 'graphite' ],   // Used to limit datasources per plugin.
+    datasources: [ 'influxdb3', 'influxdb4' ],   // Used to limit datasources per plugin.
                                      // If undefined all grafana InfluxDB
                                      // datasources will be used.
 
@@ -108,34 +109,42 @@ var getDashConf = function getDashConf () {
     'graph': {
       'system': {
         'color': '#EAB839',
+        'apply': 'derivative',
         'alias': '@description'
       },
       'user': {
         'color': '#508642',
+        'apply': 'derivative',
         'alias': '@description'
       },
       'idle': {
         'color': '#303030',
+        'apply': 'derivative',
         'alias': '@description'
       },
       'wait': {
         'color': '#890F02',
+        'apply': 'derivative',
         'alias': '@description'
       },
       'steal': {
         'color': '#E24D42',
+        'apply': 'derivative',
         'alias': '@description'
       },
       'nice': {
         'color': '#9400D3',
+        'apply': 'derivative',
         'alias': '@description'
       },
       'softirq': {
         'color': '#E9967A',
+        'apply': 'derivative',
         'alias': '@description'
       },
       'interrupt': {
         'color': '#1E90FF',
+        'apply': 'derivative',
         'alias': '@description'
       }
     },
@@ -722,6 +731,29 @@ var getDashConf = function getDashConf () {
     }
   };
 
+  plugins.df.space_old = {
+    'graph': {
+      'used': {
+        'alias': 'used',
+        'color': '#447EBC',
+        'type': 'df'
+      },
+      'free': {
+        'alias': 'free',
+        'color': '#508642',
+        'type': 'df'
+      }
+    },
+    'panel': {
+      'title': 'Disk space for @metric',
+      'y_formats': [ 'bytes' ],
+      'stack': true,
+      'tooltip': { 'value_type': 'individual' }
+    },
+    use_type_instance: true
+  };
+
+
   plugins.df.inode = {
     'graph': {
       'used': {
@@ -786,7 +818,7 @@ var getDashConf = function getDashConf () {
       }
     },
     'panel': {
-      'title': 'Disk Operations for @metric',
+      'title': 'Disk IO for @metric',
       'yaxes': [ { 'format': 'iops' }, {} ]
     }
   };
@@ -2160,20 +2192,20 @@ var getDashConf = function getDashConf () {
     'graph': {
       'cached': {
         'color': '#508642',
-        'type': 'threads'
+        'type': 'mysql_threads'
       },
       'connected': {
         'color': '#EAB839',
-        'type': 'threads'
+        'type': 'mysql_threads'
       },
       'running': {
         'color': '#890F02',
-        'type': 'threads'
+        'type': 'mysql_threads'
       },
       'created': {
         'color': '#2F575E',
         'apply': 'derivative',
-        'type': 'total_threads'
+        'type': 'mysql_threads'
       }
     },
     'panel': {
@@ -2186,25 +2218,29 @@ var getDashConf = function getDashConf () {
 
   plugins.mysql.qcache = {
     'graph': {
-      'qcache-hits': {
+      'hits': {
+        'alias': 'hits',
         'color': '#508642',
         'apply': 'derivative',
-        'type': 'cache_result'
+        'type': 'mysql_qcache'
       },
-      'qcache-inserts': {
+      'inserts': {
+        'alias': 'inserts',
         'color': '#6ED0E0',
         'apply': 'derivative',
-        'type': 'cache_result'
+        'type': 'mysql_qcache'
       },
-      'qcache-not_cached': {
+      'not_cached': {
+        'alias': 'not cached',
         'color': '#EAB839',
         'apply': 'derivative',
-        'type': 'cache_result'
+        'type': 'mysql_qcache'
       },
-      'qcache-prunes': {
+      'lowmem_prunes': {
+        'alias': 'prunes',
         'color': '#890F02',
         'apply': 'derivative',
-        'type': 'cache_result'
+        'type': 'mysql_qcache'
       }
     },
     'panel': {
@@ -2218,10 +2254,10 @@ var getDashConf = function getDashConf () {
 
   plugins.mysql.qcache_size = {
     'graph': {
-      'qcache': {
+      'queries_in_cache': {
         'color': '#1F78C1',
         'alias': 'queries',
-        'type': 'cache_size'
+        'type': 'mysql_qcache'
       }
     },
     'panel': {
@@ -2253,6 +2289,17 @@ var getDashConf = function getDashConf () {
     }
   };
 
+  plugins.mysql.log_position = {
+    'graph': {
+      'master-bin': { 'alias': 'master', 'apply': 'non_negative_derivative', 'type': 'mysql_log_position' },
+      'slave-exec': { 'alias': 'slave exec', 'apply': 'non_negative_derivative', 'type': 'mysql_log_position' },
+      'slave-read': { 'alias': 'slave read', 'apply': 'non_negative_derivative', 'type': 'mysql_log_position' },
+    },
+    'panel': {
+      'title': 'MySQL Log Position',
+      'y_formats': ['short'],
+    }
+  };
 
   // collectd postgresql plugin configuration
   plugins.postgresql = new Plugin({ 'alias': 'psql' });
@@ -3859,6 +3906,30 @@ var getDashConf = function getDashConf () {
       'title': 'Couchbase Bucket Ops',
       'yaxes': [ { 'format': 'short' }, {} ]
     }
+  };
+
+  plugins['dbi-freeswitch'] = new Plugin({ 'measurement': 'dbi', 'alias': 'freeswitch' });
+
+  plugins['dbi-freeswitch'].channels = {
+    'graph': {
+      'channels': { 'color': '#508642', 'alias': 'channels' },
+      'calls': { 'color': '#447EBC', 'alias': 'calls' },
+    },
+    'panel': {
+      'title': 'FreeSwitch Channels and Calls',
+      'y_formats': [ 'short' ],
+    },
+  };
+
+  plugins['dbi-freeswitch'].users = {
+    'graph': {
+      'registrations': { 'color': '#508642', 'alias': 'registrations' },
+      'subscriptions': { 'color': '#447EBC', 'alias': 'subscriptions' },
+    },
+    'panel': {
+      'title': 'FreeSwitch Registrations and Subscriptions',
+      'y_formats': [ 'short' ],
+    },
   };
 
 
