@@ -107,7 +107,7 @@ var getDashApp = function getDashApp (datasourcesAll, getdashConf) {
     select: [],  // [selectProto]
     interval: false,
     query: '',
-    fill: 'null',
+    fill: 'none',
     groupBy: [
       {
         type: 'time',
@@ -317,7 +317,7 @@ var getDashApp = function getDashApp (datasourcesAll, getdashConf) {
                        addProperty('regexp', plugin.config.regexp),
                        addProperty('separator', plugin.config.separator),
                        addProperty('pluginAlias', plugin.config.alias),
-                       addProperty('plugin', plugin.name),
+                       addProperty('plugin', plugin.config.measurement || plugin.name),
                        initMetric);
   });
 
@@ -444,7 +444,7 @@ var getDashApp = function getDashApp (datasourcesAll, getdashConf) {
       select: [ select ],
       tags: tags,
       interval: (isDerivative(select) ? null : graphConf.interval),
-      fill: (isDerivative(select) ? 'none' : 'null')
+      fill: 'none'
     };
 
     if (graphConf.fill)
@@ -824,7 +824,7 @@ var getDashApp = function getDashApp (datasourcesAll, getdashConf) {
   var getQueryConfigs = _.curry(function getQueryConfigs (datasources, plugins) {
     var queryConfigsAll = _.map(plugins, function (plugin, name) {
       return {
-        name: name,
+        name: plugin.config.measurement || name,
         separator: plugin.config.separator,
         hostTag: plugin.config.tags.host,
         datasources: plugin.config.datasources || _.map(datasources, 'name')
